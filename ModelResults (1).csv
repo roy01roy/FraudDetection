@@ -1,0 +1,10 @@
+Metric,Fraud_Class,Description
+Precision,0.94,Of all flagged fraud transactions 94% are genuine fraud
+Recall,0.87,87% of all actual fraud transactions are detected
+F1-Score,0.9035,Harmonic mean of Precision and Recall
+AUC-ROC,0.9836,Near-perfect class discrimination across all thresholds
+Avg Precision,0.9412,Area under the Precision-Recall curve
+True Negatives,1270978,Legitimate transactions correctly classified as legitimate
+False Positives,453,Legitimate transactions incorrectly flagged as fraud
+False Negatives,216,Fraud transactions missed by the model
+True Positives,1476,Fraud transactions correctly identified

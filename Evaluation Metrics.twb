@@ -1,0 +1,310 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<workbook source-build='2023.1.0' source-platform='win' version='18.1' xmlns:user='http://www.tableausoftware.com/xml/user'>
+  <preferences>
+    <color-palette name='Model Evaluation Palette' type='regular'>
+      <color>#1A6B1A</color>
+      <color>#CC2200</color>
+      <color>#4472C4</color>
+      <color>#ED7D31</color>
+      <color>#FFC000</color>
+    </color-palette>
+  </preferences>
+
+  <datasources>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         DATA SOURCE 1: ModelResults.csv
+         ═══════════════════════════════════════════════════════════ -->
+    <datasource caption='Model Results' name='model_results' inline='true'>
+      <connection class='textscan' filename='ModelResults.csv' separator=',' >
+        <relation name='ModelResults' table='ModelResults' type='text' />
+      </connection>
+      <column datatype='string'  name='[Metric]'      role='dimension' type='nominal'      caption='Metric'/>
+      <column datatype='real'    name='[Fraud_Class]'  role='measure'   type='quantitative' caption='Fraud Class Value'/>
+      <column datatype='string'  name='[Description]'  role='dimension' type='nominal'      caption='Description'/>
+
+      <!-- Calculated: Confusion Matrix Labels -->
+      <column caption='Confusion Matrix Cell' datatype='string' name='[Calc_CMCell]' role='dimension' type='nominal'>
+        <calculation class='tableau' formula='IF [Metric] = &quot;True Negatives&quot;  THEN &quot;TN — Correctly Identified Legitimate&quot;
+ELSEIF [Metric] = &quot;False Positives&quot; THEN &quot;FP — Legitimate Wrongly Flagged&quot;
+ELSEIF [Metric] = &quot;False Negatives&quot; THEN &quot;FN — Fraud Missed by Model&quot;
+ELSEIF [Metric] = &quot;True Positives&quot;  THEN &quot;TP — Correctly Identified Fraud&quot;
+ELSE NULL
+END'/>
+      </column>
+
+      <column caption='CM Colour Category' datatype='string' name='[Calc_CMColour]' role='dimension' type='nominal'>
+        <calculation class='tableau' formula='IF [Metric] = &quot;True Negatives&quot;  THEN &quot;Correct&quot;
+ELSEIF [Metric] = &quot;True Positives&quot;  THEN &quot;Correct&quot;
+ELSEIF [Metric] = &quot;False Positives&quot; THEN &quot;Error&quot;
+ELSEIF [Metric] = &quot;False Negatives&quot; THEN &quot;Error&quot;
+ELSE &quot;Metric&quot;
+END'/>
+      </column>
+
+      <column caption='Is Confusion Matrix Row' datatype='boolean' name='[Calc_IsCM]' role='dimension' type='nominal'>
+        <calculation class='tableau' formula='[Metric] = &quot;True Negatives&quot; OR
+[Metric] = &quot;False Positives&quot; OR
+[Metric] = &quot;False Negatives&quot; OR
+[Metric] = &quot;True Positives&quot;'/>
+      </column>
+
+      <column caption='Predicted Label' datatype='string' name='[Calc_Predicted]' role='dimension' type='nominal'>
+        <calculation class='tableau' formula='IF [Metric] = &quot;True Negatives&quot;  OR [Metric] = &quot;False Negatives&quot; THEN &quot;Predicted: Legitimate&quot;
+ELSEIF [Metric] = &quot;False Positives&quot; OR [Metric] = &quot;True Positives&quot; THEN &quot;Predicted: Fraud&quot;
+ELSE NULL
+END'/>
+      </column>
+
+      <column caption='Actual Label' datatype='string' name='[Calc_Actual]' role='dimension' type='nominal'>
+        <calculation class='tableau' formula='IF [Metric] = &quot;True Negatives&quot;  OR [Metric] = &quot;False Positives&quot; THEN &quot;Actual: Legitimate&quot;
+ELSEIF [Metric] = &quot;False Negatives&quot; OR [Metric] = &quot;True Positives&quot;  THEN &quot;Actual: Fraud&quot;
+ELSE NULL
+END'/>
+      </column>
+    </datasource>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         DATA SOURCE 2: PRCurve.csv
+         ═══════════════════════════════════════════════════════════ -->
+    <datasource caption='PR Curve' name='pr_curve' inline='true'>
+      <connection class='textscan' filename='PRCurve.csv' separator=',' >
+        <relation name='PRCurve' table='PRCurve' type='text' />
+      </connection>
+      <column datatype='real' name='[Threshold]' role='measure' type='quantitative' caption='Threshold'/>
+      <column datatype='real' name='[Precision]' role='measure' type='quantitative' caption='Precision'/>
+      <column datatype='real' name='[Recall]'    role='measure' type='quantitative' caption='Recall'/>
+    </datasource>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         DATA SOURCE 3: ROCCurve.csv
+         ═══════════════════════════════════════════════════════════ -->
+    <datasource caption='ROC Curve' name='roc_curve' inline='true'>
+      <connection class='textscan' filename='ROCCurve.csv' separator=',' >
+        <relation name='ROCCurve' table='ROCCurve' type='text' />
+      </connection>
+      <column datatype='real' name='[FPR]'       role='measure' type='quantitative' caption='False Positive Rate'/>
+      <column datatype='real' name='[TPR]'       role='measure' type='quantitative' caption='True Positive Rate (Recall)'/>
+      <column datatype='real' name='[Threshold]' role='measure' type='quantitative' caption='Threshold'/>
+    </datasource>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         DATA SOURCE 4: FeatureImportance.csv
+         ═══════════════════════════════════════════════════════════ -->
+    <datasource caption='Feature Importance' name='feature_importance' inline='true'>
+      <connection class='textscan' filename='FeatureImportance.csv' separator=',' >
+        <relation name='FeatureImportance' table='FeatureImportance' type='text' />
+      </connection>
+      <column datatype='string' name='[Feature]'    role='dimension' type='nominal'      caption='Feature'/>
+      <column datatype='real'   name='[Importance]' role='measure'   type='quantitative' caption='Importance Score'/>
+    </datasource>
+
+  </datasources>
+
+  <worksheets>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         SHEET 1: Confusion Matrix Heatmap
+         ═══════════════════════════════════════════════════════════ -->
+    <worksheet name='Confusion Matrix'>
+      <table>
+        <view>
+          <datasources>
+            <datasource caption='Model Results' name='model_results'/>
+          </datasources>
+          <datasource-dependencies datasource='model_results'>
+            <column-instance column='[Calc_Predicted]'  derivation='None' name='[none:Calc_Predicted:nk]' pivot='key' type='nominal'/>
+            <column-instance column='[Calc_Actual]'     derivation='None' name='[none:Calc_Actual:nk]'    pivot='key' type='nominal'/>
+            <column-instance column='[Fraud_Class]'     derivation='Sum'  name='[sum:Fraud_Class:qk]'     pivot='key' type='quantitative'/>
+            <column-instance column='[Calc_CMColour]'   derivation='None' name='[none:Calc_CMColour:nk]'  pivot='key' type='nominal'/>
+          </datasource-dependencies>
+          <filter class='categorical' column='[model_results].[Calc_IsCM]'>
+            <groupfilter function='member' level='[Calc_IsCM]' member='true'/>
+          </filter>
+          <rows>[none:Calc_Actual:nk]</rows>
+          <cols>[none:Calc_Predicted:nk]</cols>
+        </view>
+        <style>
+          <style-rule element='mark'>
+            <mark class='square'/>
+            <encoding attr='color' field='[model_results].[Calc_CMColour]' type='palette'>
+              <map to='#1A6B1A'><bucket>&quot;Correct&quot;</bucket></map>
+              <map to='#CC2200'><bucket>&quot;Error&quot;</bucket></map>
+            </encoding>
+            <encoding attr='label' field='[model_results].[sum:Fraud_Class:qk]' type='quantitative'/>
+            <encoding attr='size' value='18'/>
+          </style-rule>
+        </style>
+      </table>
+      <simple-id uuid='{11111111-2222-3333-4444-555555555555}'/>
+    </worksheet>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         SHEET 2: Precision-Recall Curve
+         ═══════════════════════════════════════════════════════════ -->
+    <worksheet name='Precision-Recall Curve'>
+      <table>
+        <view>
+          <datasources>
+            <datasource caption='PR Curve' name='pr_curve'/>
+          </datasources>
+          <datasource-dependencies datasource='pr_curve'>
+            <column-instance column='[Recall]'    derivation='Sum' name='[sum:Recall:qk]'    pivot='key' type='quantitative'/>
+            <column-instance column='[Precision]' derivation='Sum' name='[sum:Precision:qk]' pivot='key' type='quantitative'/>
+            <column-instance column='[Threshold]' derivation='Sum' name='[sum:Threshold:qk]' pivot='key' type='quantitative'/>
+          </datasource-dependencies>
+          <rows>[sum:Precision:qk]</rows>
+          <cols>[sum:Recall:qk]</cols>
+        </view>
+        <style>
+          <style-rule element='mark'>
+            <mark class='line'/>
+            <encoding attr='color' value='#4472C4'/>
+            <encoding attr='path'  field='[pr_curve].[sum:Threshold:qk]' type='quantitative'/>
+          </style-rule>
+        </style>
+      </table>
+      <simple-id uuid='{22222222-3333-4444-5555-666666666666}'/>
+    </worksheet>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         SHEET 3: ROC Curve
+         ═══════════════════════════════════════════════════════════ -->
+    <worksheet name='ROC Curve'>
+      <table>
+        <view>
+          <datasources>
+            <datasource caption='ROC Curve' name='roc_curve'/>
+          </datasources>
+          <datasource-dependencies datasource='roc_curve'>
+            <column-instance column='[FPR]'       derivation='Sum' name='[sum:FPR:qk]'       pivot='key' type='quantitative'/>
+            <column-instance column='[TPR]'       derivation='Sum' name='[sum:TPR:qk]'        pivot='key' type='quantitative'/>
+            <column-instance column='[Threshold]' derivation='Sum' name='[sum:Threshold:qk]'  pivot='key' type='quantitative'/>
+          </datasource-dependencies>
+          <rows>[sum:TPR:qk]</rows>
+          <cols>[sum:FPR:qk]</cols>
+        </view>
+        <style>
+          <style-rule element='mark'>
+            <mark class='line'/>
+            <encoding attr='color' value='#CC2200'/>
+            <encoding attr='path'  field='[roc_curve].[sum:Threshold:qk]' type='quantitative'/>
+          </style-rule>
+        </style>
+      </table>
+      <simple-id uuid='{33333333-4444-5555-6666-777777777777}'/>
+    </worksheet>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         SHEET 4: Summary Metrics Bar Chart
+         ═══════════════════════════════════════════════════════════ -->
+    <worksheet name='Summary Metrics'>
+      <table>
+        <view>
+          <datasources>
+            <datasource caption='Model Results' name='model_results'/>
+          </datasources>
+          <datasource-dependencies datasource='model_results'>
+            <column-instance column='[Metric]'     derivation='None' name='[none:Metric:nk]'    pivot='key' type='nominal'/>
+            <column-instance column='[Fraud_Class]'derivation='Sum'  name='[sum:Fraud_Class:qk]' pivot='key' type='quantitative'/>
+          </datasource-dependencies>
+          <filter class='categorical' column='[model_results].[Metric]'>
+            <groupfilter function='union' user:ui-domain='relevant' user:ui-enumeration='inclusive' user:ui-marker='enumerate'>
+              <groupfilter function='member' level='[Metric]' member='Precision'/>
+              <groupfilter function='member' level='[Metric]' member='Recall'/>
+              <groupfilter function='member' level='[Metric]' member='F1-Score'/>
+              <groupfilter function='member' level='[Metric]' member='AUC-ROC'/>
+              <groupfilter function='member' level='[Metric]' member='Avg Precision'/>
+            </groupfilter>
+          </filter>
+          <rows>[sum:Fraud_Class:qk]</rows>
+          <cols>[none:Metric:nk]</cols>
+        </view>
+        <style>
+          <style-rule element='mark'>
+            <encoding attr='color' field='[model_results].[Metric]' palette='Model Evaluation Palette' type='palette'/>
+            <encoding attr='label' field='[model_results].[sum:Fraud_Class:qk]' type='quantitative'/>
+          </style-rule>
+        </style>
+      </table>
+      <simple-id uuid='{44444444-5555-6666-7777-888888888888}'/>
+    </worksheet>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         SHEET 5: Feature Importance Bar Chart
+         ═══════════════════════════════════════════════════════════ -->
+    <worksheet name='Feature Importance'>
+      <table>
+        <view>
+          <datasources>
+            <datasource caption='Feature Importance' name='feature_importance'/>
+          </datasources>
+          <datasource-dependencies datasource='feature_importance'>
+            <column-instance column='[Feature]'    derivation='None' name='[none:Feature:nk]'    pivot='key' type='nominal'/>
+            <column-instance column='[Importance]' derivation='Sum'  name='[sum:Importance:qk]'  pivot='key' type='quantitative'/>
+          </datasource-dependencies>
+          <rows>[none:Feature:nk]</rows>
+          <cols>[sum:Importance:qk]</cols>
+        </view>
+        <style>
+          <style-rule element='mark'>
+            <encoding attr='color' field='[feature_importance].[sum:Importance:qk]' palette='blue' type='quantitative'/>
+            <encoding attr='label' field='[feature_importance].[sum:Importance:qk]' type='quantitative'/>
+          </style-rule>
+        </style>
+      </table>
+      <simple-id uuid='{55555555-6666-7777-8888-999999999999}'/>
+    </worksheet>
+
+  </worksheets>
+
+  <dashboards>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         DASHBOARD C: Model Evaluation Metrics
+         ═══════════════════════════════════════════════════════════ -->
+    <dashboard name='Dashboard C — Model Evaluation'>
+      <style/>
+      <size maxheight='2000' maxwidth='1900' minheight='400' minwidth='400'/>
+      <zones>
+        <zone h='12000' id='30' type='layout-basic' w='28800' x='0' y='0'>
+          <zone h='12000' id='31' param='vert' type='layout-flow' w='28800' x='0' y='0'>
+
+            <zone h='2000' id='32' type='title' w='28800' x='0' y='0'/>
+
+            <zone h='3000' id='33' name='Summary Metrics' type='worksheet' w='28800' x='0' y='2000'/>
+
+            <zone h='4000' id='34' param='horiz' type='layout-flow' w='28800' x='0' y='5000'>
+              <zone h='4000' id='35' name='Confusion Matrix'      type='worksheet' w='9600'  x='0'     y='5000'/>
+              <zone h='4000' id='36' name='Precision-Recall Curve' type='worksheet' w='9600'  x='9600'  y='5000'/>
+              <zone h='4000' id='37' name='ROC Curve'             type='worksheet' w='9600'  x='19200' y='5000'/>
+            </zone>
+
+            <zone h='3000' id='38' name='Feature Importance' type='worksheet' w='28800' x='0' y='9000'/>
+
+          </zone>
+        </zone>
+      </zones>
+      <simple-id uuid='{C3C3C3C3-D4D4-E5E5-F6F6-A7A7A7A7A7A7}'/>
+    </dashboard>
+
+  </dashboards>
+
+  <stories>
+    <story name='Model Performance Story' navigation-style='numbers'>
+      <style/>
+      <size maxheight='2000' maxwidth='1900' minheight='400' minwidth='400'/>
+      <storypoints>
+        <storypoint captured-sheet='Dashboard C — Model Evaluation' nav-text='Scene 4: Model Performance'/>
+      </storypoints>
+      <simple-id uuid='{F6F6F6F6-A7A7-B8B8-C9C9-D0D0D0D0D0D0}'/>
+    </story>
+  </stories>
+
+  <windows>
+    <window class='dashboard' maximized='true' name='Dashboard C — Model Evaluation'>
+      <viewpoint/>
+    </window>
+  </windows>
+
+</workbook>

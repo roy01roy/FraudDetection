@@ -1,0 +1,13 @@
+Feature,Importance
+errorBalanceOrig,0.3412
+errorBalanceDest,0.2876
+amount,0.1923
+oldbalanceOrg,0.0721
+newbalanceOrig,0.0634
+oldbalanceDest,0.0287
+newbalanceDest,0.0051
+type_TRANSFER,0.0043
+type_CASH_OUT,0.0028
+step,0.0025
+type_DEBIT,0
+type_PAYMENT,0

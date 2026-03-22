@@ -1,0 +1,4 @@
+Cluster,Cluster_Label,Transaction_Count,Fraud_Count,Fraud_Rate,Avg_Amount,Risk_Level
+0,Low-Value Legitimate,4981203,312,0.0000627,18743.21,Low
+1,Medium-Risk CASH-OUT,1173205,1624,0.001384,287419.44,Medium
+2,High-Risk Fraud,208212,6277,0.030148,1842671.33,High
